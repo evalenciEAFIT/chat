@@ -1,17 +1,45 @@
-#ifndef USUARIO_H
-#define USUARIO_H
+# Compilador y flags
+CXX = g++
+CXXFLAGS = -std=c++11 -Iinclude -Wall -Wextra
 
-#include <string>
+# Directorios
+SRC_DIR = src
+INCLUDE_DIR = include
+BUILD_DIR = build
 
-class Usuario {
-public:
-    Usuario(const std::string& nombreUsuario, int descriptorSocket);
-    std::string obtenerNombreUsuario() const;
-    int obtenerDescriptorSocket() const;
+# Archivos fuente y de cabecera
+SRCS = $(wildcard $(SRC_DIR)/*.cpp) main.cpp
+OBJS = $(SRCS:%.cpp=$(BUILD_DIR)/%.o)
 
-private:
-    std::string nombreUsuario;  // Nombre del usuario
-    int descriptorSocket;      // Descriptor del socket del usuario
-};
+# Archivo ejecutable
+TARGET = $(BUILD_DIR)/chat
 
-#endif // USUARIO_H
+# Regla por defecto
+all: $(TARGET)
+
+# Regla para crear el directorio de compilación
+$(BUILD_DIR):
+	mkdir -p $(BUILD_DIR)/$(SRC_DIR)
+
+# Regla para compilar el ejecutable
+$(TARGET): $(OBJS)
+	$(CXX) $(CXXFLAGS) -o $@ $^
+
+# Regla para compilar los archivos objeto
+$(BUILD_DIR)/%.o: %.cpp | $(BUILD_DIR)
+	$(CXX) $(CXXFLAGS) -c $< -o $@
+
+# Limpiar archivos compilados
+clean:
+	rm -rf $(BUILD_DIR)
+
+# Ejecutar el servidor
+run-servidor: $(TARGET)
+	./$(TARGET) servidor 12345
+
+# Ejecutar el cliente
+run-cliente: $(TARGET)
+	./$(TARGET) cliente 127.0.0.1 12345
+
+# Declarar reglas como phony
+.PHONY: all clean run-servidor run-cliente
